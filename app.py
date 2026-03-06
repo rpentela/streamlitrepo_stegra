@@ -112,7 +112,7 @@ with tab1:
     # -----------------------------
     st.subheader("Downtime Distribution by Shift")
     downtime_by_shift = filtered_df.groupby('Shift')['Downtime_minutes'].sum()
-    fig, ax = plt.subplots(figsize=(3,3))
+    fig, ax = plt.subplots(figsize=(2,2))
     ax.pie(downtime_by_shift, labels=downtime_by_shift.index, autopct="%1.1f%%", colors=sns.color_palette("Reds", len(downtime_by_shift)))
     ax.set_title("Downtime Distribution")
     st.pyplot(fig)
@@ -159,5 +159,6 @@ with tab3:
         file_name='cold_mill_report.csv',
         mime='text/csv'
     )
+
 
 
