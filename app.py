@@ -57,17 +57,18 @@ with tab1:
 
     col1, col2, col3, col4 = st.columns(4)
 
-    col1.metric("Total Production (tons)", f"{total_prod:,.0f}", delta=f"{total_prod - df['Production_tons'].sum():,.0f}")
-    col2.metric("Total Scrap (tons)", f"{total_scrap:,.1f}")
-    
-    # colored KPI for efficiency
-    eff_color = "normal"
+    col1.metric("Total Production (tons)", f"{total_prod:,.0f}")
+    col2.metric("Total Scrap (tons)", f"{total_scrap:.1f}")
+
+    # KPI with emoji for efficiency
     if avg_eff < 80:
-        eff_color = "danger"
+        eff_indicator = "🔴"
     elif avg_eff < 90:
-        eff_color = "warning"
-    
-    col3.metric("Average Efficiency (%)", f"{avg_eff:.1f}", delta_color=eff_color)
+        eff_indicator = "🟡"
+    else:
+        eff_indicator = "🟢"
+
+    col3.metric("Average Efficiency (%)", f"{avg_eff:.1f} {eff_indicator}")
     col4.metric("Total Downtime (hrs)", f"{total_downtime:.1f}")
 
 # -----------------------------
