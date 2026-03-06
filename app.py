@@ -1,34 +1,30 @@
-# app.py
-
 import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
 
+st.set_page_config(page_title="Cold Mill Dashboard", layout="wide")
 
-
-# -------------------------
-# User credentials
-# -------------------------
+# -----------------------------
+# USERS
+# -----------------------------
 USERS = {
     "admin": "master",
-    "colleague1": "pass1",
-    "colleague2": "pass2"
+    "engineer": "steel123"
 }
 
-# -------------------------
-# Session state setup
-# -------------------------
+# -----------------------------
+# SESSION STATE
+# -----------------------------
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 if "username" not in st.session_state:
     st.session_state.username = ""
 
-# -------------------------
+# -----------------------------
 # LOGIN PAGE
-# -------------------------
+# -----------------------------
 if not st.session_state.logged_in:
 
     st.title("🔒 Cold Mill Dashboard Login")
@@ -43,200 +39,230 @@ if not st.session_state.logged_in:
             if username in USERS and USERS[username] == password:
                 st.session_state.logged_in = True
                 st.session_state.username = username
-                st.rerun()   # correct function
+                st.rerun()
             else:
                 st.error("Invalid username or password")
 
     st.stop()
 
-# -------------------------
-# DASHBOARD
-# -------------------------
+# -----------------------------
+# SIDEBAR
+# -----------------------------
+st.sidebar.title("User")
 
-st.sidebar.write(f"👤 Logged in as: {st.session_state.username}")
+st.sidebar.write(f"👤 {st.session_state.username}")
 
-logout = st.sidebar.button("Logout")
-
-if logout:
+if st.sidebar.button("Logout"):
     st.session_state.logged_in = False
     st.session_state.username = ""
     st.rerun()
 
-
-# ---- Your KPIs, Trends, and Table tabs go below ----
-
-
+# -----------------------------
+# TITLE
+# -----------------------------
+st.title("🏭 Cold Mill Processing Line Dashboard")
 
 # -----------------------------
-# Page Config
+# SAMPLE DATA
 # -----------------------------
-st.set_page_config(
-    page_title="Cold Mill Dashboard",
-    layout="wide",
-    initial_sidebar_state="expanded"
+np.random.seed(1)
+
+dates = pd.date_range("2026-01-01", periods=120)
+
+df = pd.DataFrame({
+
+    "Date": np.random.choice(dates, 300),
+
+    "Shift": np.random.choice(["A","B","C"],300),
+
+    "Coil_ID": np.random.randint(1000,1100,300),
+
+    "Width_mm": np.random.randint(900,1600,300),
+
+    "Thickness_mm": np.round(np.random.normal(1.5,0.05,300),3),
+
+    "Target_Thickness_mm":1.5,
+
+    "Production_tons":np.random.randint(15,30,300),
+
+    "Downtime_minutes":np.random.randint(0,60,300),
+
+    "Delay_Agency":np.random.choice(
+        ["Mechanical","Electrical","Operator","Material","Quality"],300
+    ),
+
+    "Delay_Reason":np.random.choice(
+        ["Roll change","Strip break","Sensor fault","Coil jam","Setup delay"],300
+    ),
+
+    "Setup_Time_min":np.random.randint(10,45,300),
+
+    "Operator":np.random.choice(
+        ["John","Mike","Ravi","Chen","Luis"],300
+    )
+
+})
+
+# -----------------------------
+# TABS
+# -----------------------------
+tab1, tab2, tab3, tab4 = st.tabs(
+    ["📊 KPI Overview","⚙️ Downtime Analysis","🔍 Coil Drilldown","📋 Data"]
 )
 
-st.title("🏭 Cold Mill Process Dashboard")
-st.markdown(
-    "Interactive dashboard for production, scrap, downtime, and efficiency of a cold mill line."
-)
-
 # -----------------------------
-# Generate Example Data
-# -----------------------------
-np.random.seed(42)
-dates = pd.date_range(start='2023-01-01', periods=30, freq='D')
-shifts = ['A', 'B', 'C']
-
-data = {
-    'Date': np.repeat(dates, 3),
-    'Shift': shifts * len(dates),
-    'Production_tons': np.random.randint(80, 120, len(dates)*3),
-    'Scrap_tons': np.random.randint(0, 5, len(dates)*3),
-    'Downtime_minutes': np.random.randint(0, 60, len(dates)*3),
-    'Efficiency_%': np.random.randint(75, 100, len(dates)*3)
-}
-
-df = pd.DataFrame(data)
-
-# -----------------------------
-# Sidebar Filters
-# -----------------------------
-st.sidebar.header("Filters")
-date_filter = st.sidebar.date_input(
-    "Select Date Range",
-    [df['Date'].min(), df['Date'].max()]
-)
-shift_filter = st.sidebar.multiselect(
-    "Select Shift(s)",
-    options=shifts,
-    default=shifts
-)
-
-filtered_df = df[
-    (df['Date'] >= pd.to_datetime(date_filter[0])) &
-    (df['Date'] <= pd.to_datetime(date_filter[1])) &
-    (df['Shift'].isin(shift_filter))
-]
-
-# -----------------------------
-# Tabs
-# -----------------------------
-tab1, tab2, tab3 = st.tabs(["KPIs", "Trends", "Report"])
-
-# -----------------------------
-# Tab 1: Enhanced KPIs
+# KPI TAB
 # -----------------------------
 with tab1:
-    st.subheader("🔑 Key Performance Indicators")
 
-    # Basic KPIs
-    total_prod = filtered_df['Production_tons'].sum()
-    total_scrap = filtered_df['Scrap_tons'].sum()
-    avg_eff = filtered_df['Efficiency_%'].mean()
-    total_downtime = filtered_df['Downtime_minutes'].sum()/60  # hours
-    avg_downtime_shift = filtered_df.groupby('Shift')['Downtime_minutes'].mean()/60  # hours
-    max_prod_day = filtered_df.groupby('Date')['Production_tons'].sum().idxmax()
-    min_eff_day = filtered_df.groupby('Date')['Efficiency_%'].mean().idxmin()
+    st.subheader("Production KPIs")
 
-    # KPI Columns
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Total Production (tons)", f"{total_prod:,.0f}")
-    col2.metric("Total Scrap (tons)", f"{total_scrap:.1f}")
+    col1,col2,col3,col4 = st.columns(4)
 
-    # Efficiency emoji
-    if avg_eff < 80:
-        eff_indicator = "🔴"
-    elif avg_eff < 90:
-        eff_indicator = "🟡"
-    else:
-        eff_indicator = "🟢"
-    col3.metric("Average Efficiency (%)", f"{avg_eff:.1f} {eff_indicator}")
-
-    col4.metric("Total Downtime (hrs)", f"{total_downtime:.1f}")
-
-    # Additional info in next row
-    col5, col6, col7 = st.columns(3)
-    col5.metric("Average Downtime per Shift (hrs)", f"{avg_downtime_shift.mean():.1f}")
-    col6.metric("Max Production Day", f"{max_prod_day.date()}")
-    col7.metric("Min Efficiency Day", f"{min_eff_day.date()}")
-
-    # -----------------------------
-    # Downtime Pie Chart
-    # -----------------------------
-    # Downtime Pie Chart (smaller size)
-    st.subheader("Downtime Distribution by Shift")
-    downtime_by_shift = filtered_df.groupby('Shift')['Downtime_minutes'].sum()
-    
-    # Set smaller figure size
-    fig, ax = plt.subplots(figsize=(4,4))  # smaller than before
-    ax.pie(
-        downtime_by_shift,
-        labels=downtime_by_shift.index,
-        autopct="%1.1f%%",
-        colors=sns.color_palette("Reds", len(downtime_by_shift)),
-        startangle=90
+    col1.metric(
+        "Total Production (tons)",
+        int(df["Production_tons"].sum())
     )
-    ax.set_title("Downtime Distribution", fontsize=12)
-    st.pyplot(fig, use_container_width=False)  # Prevent it from stretching full width
+
+    col2.metric(
+        "Average Setup Time",
+        f"{df['Setup_Time_min'].mean():.1f} min"
+    )
+
+    col3.metric(
+        "Total Downtime",
+        f"{df['Downtime_minutes'].sum()} min"
+    )
+
+    thickness_dev = abs(df["Thickness_mm"]-df["Target_Thickness_mm"]).mean()
+
+    col4.metric(
+        "Thickness Deviation",
+        f"{thickness_dev:.3f} mm"
+    )
+
+    st.subheader("Production Trend")
+
+    prod_trend = df.groupby("Date")["Production_tons"].sum()
+
+    st.line_chart(prod_trend)
 
 # -----------------------------
-# Tab 2: Trends
+# DOWNTIME TAB
 # -----------------------------
 with tab2:
-    st.subheader("📈 Production & Scrap Trends")
 
-    col1, col2 = st.columns(2)
+    col1,col2 = st.columns(2)
 
-    # Production Trend (line chart)
-    prod_trend = filtered_df.groupby('Date')['Production_tons'].sum().reset_index()
-    prod_trend.set_index('Date', inplace=True)
-    col1.line_chart(prod_trend)
+    with col1:
 
-    # Scrap Trend (bar chart)
-    scrap_trend = filtered_df.groupby('Date')['Scrap_tons'].sum().reset_index()
-    scrap_trend.set_index('Date', inplace=True)
-    col2.bar_chart(scrap_trend)
+        st.subheader("Downtime by Agency")
 
-    # Efficiency Boxplot
-    st.subheader("Shift-wise Efficiency Distribution")
-    fig1, ax1 = plt.subplots(figsize=(8,3))
-    sns.boxplot(x='Shift', y='Efficiency_%', data=filtered_df, palette='Blues', ax=ax1)
-    ax1.set_title("Efficiency by Shift")
-    st.pyplot(fig1)
+        agency_data = df.groupby("Delay_Agency")["Downtime_minutes"].sum()
 
-    
+        fig,ax = plt.subplots(figsize=(4,4))
+
+        ax.pie(
+            agency_data,
+            labels=agency_data.index,
+            autopct="%1.1f%%",
+            startangle=90
+        )
+
+        ax.set_title("Downtime Distribution")
+
+        st.pyplot(fig)
+
+    with col2:
+
+        st.subheader("Downtime Pareto (Reason)")
+
+        reason_data = (
+            df.groupby("Delay_Reason")["Downtime_minutes"]
+            .sum()
+            .sort_values(ascending=False)
+        )
+
+        fig,ax = plt.subplots(figsize=(6,4))
+
+        reason_data.plot(kind="bar",ax=ax)
+
+        ax.set_ylabel("Downtime Minutes")
+
+        st.pyplot(fig)
 
 # -----------------------------
-# Tab 3: Data Table
+# COIL DRILLDOWN
 # -----------------------------
 with tab3:
-    st.subheader("📋 Filtered Report")
-    st.dataframe(filtered_df)
 
-    # Download CSV
-    csv = filtered_df.to_csv(index=False).encode('utf-8')
-    st.download_button(
-        label="📥 Download CSV",
-        data=csv,
-        file_name='cold_mill_report.csv',
-        mime='text/csv'
+    st.subheader("Coil Drilldown Report")
+
+    coil_list = sorted(df["Coil_ID"].unique())
+
+    selected_coil = st.selectbox(
+        "Select Coil",
+        coil_list
     )
 
+    coil_data = df[df["Coil_ID"]==selected_coil]
 
+    st.write("### Coil Setup Details")
 
+    st.dataframe(
+        coil_data[
+            [
+                "Date",
+                "Shift",
+                "Operator",
+                "Width_mm",
+                "Thickness_mm",
+                "Target_Thickness_mm",
+                "Setup_Time_min"
+            ]
+        ]
+    )
 
+    st.subheader("Thickness Test Graph")
 
+    fig,ax = plt.subplots(figsize=(7,4))
 
+    ax.plot(
+        coil_data.index,
+        coil_data["Thickness_mm"],
+        marker="o",
+        label="Measured"
+    )
 
+    ax.axhline(
+        coil_data["Target_Thickness_mm"].iloc[0],
+        color="red",
+        linestyle="--",
+        label="Target"
+    )
 
+    ax.set_xlabel("Sample")
 
+    ax.set_ylabel("Thickness (mm)")
 
+    ax.legend()
 
+    st.pyplot(fig)
 
+# -----------------------------
+# DATA TAB
+# -----------------------------
+with tab4:
 
+    st.subheader("Raw Production Data")
 
+    st.dataframe(df)
 
+    csv = df.to_csv(index=False).encode("utf-8")
 
-
-
+    st.download_button(
+        "Download CSV",
+        csv,
+        "cold_mill_report.csv",
+        "text/csv"
+    )
