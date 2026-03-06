@@ -124,7 +124,7 @@ with tab1:
             with st.expander(f"🔎 Coil Drilldown: {row['Coil_ID']}", expanded=True):
                 coil_df = production[production["Coil_ID"]==row["Coil_ID"]]
                 st.dataframe(coil_df)
-                fig, ax = plt.subplots(figsize=(5,2.5))
+                fig, ax = plt.subplots(figsize=(3,1))
                 test = np.random.normal(coil_df["Thickness"].values[0], 0.02, 30)
                 ax.plot(test)
                 ax.axhline(coil_df["Target"].values[0], color="green", linestyle="--")
@@ -195,6 +195,7 @@ with tab5:
 
     st.write("Detected anomalies:")
     st.dataframe(anomalies)
+
 
 
 
