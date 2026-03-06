@@ -5,12 +5,22 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-st.set_page_config(page_title="Cold Mill Dashboard", layout="wide", initial_sidebar_state="expanded")
+# -----------------------------
+# Page Config
+# -----------------------------
+st.set_page_config(
+    page_title="Cold Mill Dashboard",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
 st.title("🏭 Cold Mill Process Dashboard")
-st.markdown("Professional interactive dashboard for production line monitoring, trends, and KPIs.")
+st.markdown(
+    "Interactive dashboard for production, scrap, downtime, and efficiency of a cold mill line."
+)
 
 # -----------------------------
-# Example Data Generation
+# Generate Example Data
 # -----------------------------
 np.random.seed(42)
 dates = pd.date_range(start='2023-01-01', periods=30, freq='D')
@@ -31,8 +41,15 @@ df = pd.DataFrame(data)
 # Sidebar Filters
 # -----------------------------
 st.sidebar.header("Filters")
-date_filter = st.sidebar.date_input("Select Date Range", [df['Date'].min(), df['Date'].max()])
-shift_filter = st.sidebar.multiselect("Select Shift(s)", options=shifts, default=shifts)
+date_filter = st.sidebar.date_input(
+    "Select Date Range",
+    [df['Date'].min(), df['Date'].max()]
+)
+shift_filter = st.sidebar.multiselect(
+    "Select Shift(s)",
+    options=shifts,
+    default=shifts
+)
 
 filtered_df = df[
     (df['Date'] >= pd.to_datetime(date_filter[0])) &
@@ -41,7 +58,7 @@ filtered_df = df[
 ]
 
 # -----------------------------
-# Tabs for different views
+# Tabs
 # -----------------------------
 tab1, tab2, tab3 = st.tabs(["KPIs", "Trends", "Data Table"])
 
@@ -53,14 +70,13 @@ with tab1:
     total_prod = filtered_df['Production_tons'].sum()
     total_scrap = filtered_df['Scrap_tons'].sum()
     avg_eff = filtered_df['Efficiency_%'].mean()
-    total_downtime = filtered_df['Downtime_minutes'].sum()/60  # hours
+    total_downtime = filtered_df['Downtime_minutes'].sum() / 60  # hours
 
     col1, col2, col3, col4 = st.columns(4)
-
     col1.metric("Total Production (tons)", f"{total_prod:,.0f}")
     col2.metric("Total Scrap (tons)", f"{total_scrap:.1f}")
 
-    # KPI with emoji for efficiency
+    # Emoji indicator for efficiency
     if avg_eff < 80:
         eff_indicator = "🔴"
     elif avg_eff < 90:
@@ -77,27 +93,30 @@ with tab1:
 with tab2:
     st.subheader("📈 Production & Scrap Trends")
 
-    # Side-by-side charts
     col1, col2 = st.columns(2)
 
-    # Production Trend
+    # Production Trend (line chart)
     prod_trend = filtered_df.groupby('Date')['Production_tons'].sum().reset_index()
-    col1.line_chart(prod_trend.rename(columns={'Date':'index'}).set_index('Date'))
+    prod_trend.set_index('Date', inplace=True)
+    col1.line_chart(prod_trend)
 
-    # Scrap Trend
+    # Scrap Trend (bar chart)
     scrap_trend = filtered_df.groupby('Date')['Scrap_tons'].sum().reset_index()
-    col2.bar_chart(scrap_trend.rename(columns={'Date':'index'}).set_index('Date'))
+    scrap_trend.set_index('Date', inplace=True)
+    col2.bar_chart(scrap_trend)
 
-    # Efficiency Boxplot by Shift
+    # Efficiency Boxplot
     st.subheader("Shift-wise Efficiency Distribution")
-    fig, ax = plt.subplots(figsize=(8,3))
-    sns.boxplot(x='Shift', y='Efficiency_%', data=filtered_df, palette='Blues', ax=ax)
-    ax.set_title("Efficiency by Shift")
-    st.pyplot(fig)
+    fig1, ax1 = plt.subplots(figsize=(8,3))
+    sns.boxplot(x='Shift', y='Efficiency_%', data=filtered_df, palette='Blues', ax=ax1)
+    ax1.set_title("Efficiency by Shift")
+    st.pyplot(fig1)
 
     # Downtime Heatmap
     st.subheader("Downtime Distribution")
-    downtime_pivot = filtered_df.pivot_table(index='Date', columns='Shift', values='Downtime_minutes')
+    downtime_pivot = filtered_df.pivot_table(
+        index='Date', columns='Shift', values='Downtime_minutes'
+    )
     fig2, ax2 = plt.subplots(figsize=(10,3))
     sns.heatmap(downtime_pivot, annot=True, fmt=".0f", cmap="Reds", cbar_kws={'label':'Minutes'}, ax=ax2)
     st.pyplot(fig2)
@@ -109,7 +128,7 @@ with tab3:
     st.subheader("📋 Filtered Data Table")
     st.dataframe(filtered_df)
 
-    # CSV download
+    # Download CSV
     csv = filtered_df.to_csv(index=False).encode('utf-8')
     st.download_button(
         label="📥 Download CSV",
