@@ -135,17 +135,21 @@ with tab1:
     # -----------------------------
     # Downtime Pie Chart
     # -----------------------------
+    # Downtime Pie Chart (smaller size)
     st.subheader("Downtime Distribution by Shift")
     downtime_by_shift = filtered_df.groupby('Shift')['Downtime_minutes'].sum()
-    fig, ax = plt.subplots(figsize=(2,2))
+    
+    # Set smaller figure size
+    fig, ax = plt.subplots(figsize=(2,2))  # smaller than before
     ax.pie(
         downtime_by_shift,
         labels=downtime_by_shift.index,
         autopct="%1.1f%%",
-        colors=sns.color_palette("Reds", len(downtime_by_shift))
+        colors=sns.color_palette("Reds", len(downtime_by_shift)),
+        startangle=90
     )
-    ax.set_title("Downtime Distribution", fontsize=12)  # smaller title
-    st.pyplot(fig)
+    ax.set_title("Downtime Distribution", fontsize=12)
+    st.pyplot(fig, use_container_width=False)  # Prevent it from stretching full width
 
 # -----------------------------
 # Tab 2: Trends
@@ -189,6 +193,7 @@ with tab3:
         file_name='cold_mill_report.csv',
         mime='text/csv'
     )
+
 
 
 
