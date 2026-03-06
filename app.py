@@ -8,68 +8,63 @@ import seaborn as sns
 
 
 
-import streamlit as st
-
-# -----------------------------
-# Users
-# -----------------------------
+# -------------------------
+# User credentials
+# -------------------------
 USERS = {
     "admin": "master",
     "colleague1": "pass1",
     "colleague2": "pass2"
 }
 
-# -----------------------------
-# Session state initialization
-# -----------------------------
+# -------------------------
+# Session state setup
+# -------------------------
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
+
 if "username" not in st.session_state:
     st.session_state.username = ""
-if "logout_trigger" not in st.session_state:
-    st.session_state.logout_trigger = False
 
-# -----------------------------
-# Logout check (flag)
-# -----------------------------
-if st.session_state.logout_trigger:
-    st.session_state.logged_in = False
-    st.session_state.username = ""
-    st.session_state.logout_trigger = False
-    st.experimental_rerun()  # Safe here at top-level
-
-# -----------------------------
-# Login Page
-# -----------------------------
+# -------------------------
+# LOGIN PAGE
+# -------------------------
 if not st.session_state.logged_in:
-    st.title("🔒 Cold Mill Dashboard Login")
-    
-    # Form allows Enter key
-    with st.form(key="login_form"):
-        username_input = st.text_input("Username")
-        password_input = st.text_input("Password", type="password")
-        submit_btn = st.form_submit_button("Login")
-        
-        if submit_btn:
-            if username_input in USERS and USERS[username_input] == password_input:
-                st.session_state.logged_in = True
-                st.session_state.username = username_input
-                st.experimental_rerun()  # Safe here at top-level
-            else:
-                st.error("❌ Invalid username or password")
-    st.stop()  # Stop until login succeeds
 
-# -----------------------------
-# Dashboard Content
-# -----------------------------
+    st.title("🔒 Cold Mill Dashboard Login")
+
+    with st.form("login_form"):
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
+
+        login = st.form_submit_button("Login")
+
+        if login:
+            if username in USERS and USERS[username] == password:
+                st.session_state.logged_in = True
+                st.session_state.username = username
+                st.rerun()   # correct function
+            else:
+                st.error("Invalid username or password")
+
+    st.stop()
+
+# -------------------------
+# DASHBOARD
+# -------------------------
+
 st.sidebar.write(f"👤 Logged in as: {st.session_state.username}")
 
-# Sidebar logout triggers the flag instead of rerun inside function
-if st.sidebar.button("Logout"):
-    st.session_state.logout_trigger = True
+logout = st.sidebar.button("Logout")
 
+if logout:
+    st.session_state.logged_in = False
+    st.session_state.username = ""
+    st.rerun()
 
-st.markdown("Welcome! Use the sidebar filters to interact with the dashboard.")
+st.title("🏭 Cold Mill Processing Line Dashboard")
+
+st.write("Dashboard content goes here...")
 
 # ---- Your KPIs, Trends, and Table tabs go below ----
 
@@ -230,6 +225,7 @@ with tab3:
         file_name='cold_mill_report.csv',
         mime='text/csv'
     )
+
 
 
 
