@@ -29,7 +29,7 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 def login():
-    st.title("Cold Mill Dashboard Login")
+    st.header("Cold Mill Dashboard Login")
     with st.form("login_form"):
         user = st.text_input("Username")
         pwd = st.text_input("Password", type="password")
@@ -192,5 +192,6 @@ with tab5:
 
     st.write("Detected anomalies:")
     st.dataframe(anomalies)
+
 
 
