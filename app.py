@@ -22,7 +22,7 @@ def login():
         submit = st.form_submit_button("Login")
 
         if submit:
-            if user == "admin" and pwd == "steel123":
+            if user == "admin" and pwd == "master":
                 st.session_state.logged_in = True
                 st.rerun()
             else:
@@ -231,3 +231,4 @@ if not st.session_state.logged_in:
     login()
 else:
     dashboard()
+
