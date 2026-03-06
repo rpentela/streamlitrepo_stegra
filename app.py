@@ -10,14 +10,13 @@ st.set_page_config(layout="wide", page_title="Cold Mill Dashboard")
 st.markdown("""
 <style>
 .main-title{
-font-size:12px;
-font-weight:200;
+font-size:32px;
+font-weight:700;
 color:#1f4e79;
 }
-
 .section-title{
-font-size:12px;
-font-weight:200;
+font-size:22px;
+font-weight:600;
 color:#2c7be5;
 margin-top:10px;
 }
@@ -29,13 +28,13 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 def login():
-    st.header("Cold Mill Dashboard Login")
+    st.title("Cold Mill Dashboard Login")
     with st.form("login_form"):
         user = st.text_input("Username")
         pwd = st.text_input("Password", type="password")
         submit = st.form_submit_button("Login")
         if submit:
-            if user == "admin" and pwd == "master":
+            if user == "admin" and pwd == "steel123":
                 st.session_state.logged_in = True
                 st.rerun()
             else:
@@ -47,7 +46,7 @@ if not st.session_state.logged_in:
 
 # ---------------- SAMPLE DATA ----------------
 np.random.seed(42)
-n = 10
+n = 50
 production = pd.DataFrame({
     "Coil_ID": [f"C{1000+i}" for i in range(n)],
     "Thickness": np.round(np.random.normal(1.2,0.05,n),3),
@@ -82,7 +81,7 @@ if filtered_prod.empty:
     st.stop()
 
 # ---------------- HEADER ----------------
-st.markdown('<div class="main-header">🏭 Cold Mill Processing Dashboard</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-title">🏭 Cold Mill Processing Dashboard</div>', unsafe_allow_html=True)
 if st.sidebar.button("Logout"):
     st.session_state.logged_in=False
     st.rerun()
@@ -120,39 +119,37 @@ with tab1:
 
         if c5.button("View", key=row["Coil_ID"]):
             st.session_state["coil"] = row["Coil_ID"]
-            # Use expander instead of modal
             with st.expander(f"🔎 Coil Drilldown: {row['Coil_ID']}", expanded=True):
                 coil_df = production[production["Coil_ID"]==row["Coil_ID"]]
                 st.dataframe(coil_df)
-                fig, ax = plt.subplots(figsize=(3,1))
+                
+                fig, ax = plt.subplots(figsize=(7,3))  # wider for better scaling
                 test = np.random.normal(coil_df["Thickness"].values[0], 0.02, 30)
                 ax.plot(test)
                 ax.axhline(coil_df["Target"].values[0], color="green", linestyle="--")
-                ax.set_title("Thickness Test Data",fontsize=8)
-                ax.set_xlabel("Length", fontsize=8)
-                ax.set_ylabel("Thickness (mm)", fontsize=8)
-                ax.tick_params(axis='both', which='major', labelsize=3)  # smaller tick labels
-                st.pyplot(fig)
+                ax.set_title("Thickness Test Data")
+                st.pyplot(fig, clear_figure=True)
 
 # ================= DOWNTIME TAB =================
 with tab2:
     st.markdown('<div class="section-title">📉 Downtime Pareto</div>', unsafe_allow_html=True)
     downtime_sorted = downtime.sort_values("Minutes", ascending=False)
-    fig, ax = plt.subplots(figsize=(5,3))
+    fig, ax = plt.subplots(figsize=(7,3))
     ax.bar(downtime_sorted["Reason"], downtime_sorted["Minutes"], color="#2c7be5")
     ax.set_ylabel("Minutes")
     plt.xticks(rotation=45)
     plt.tight_layout()
-    st.pyplot(fig)
+    st.pyplot(fig, clear_figure=True)
 
 # ================= SHIFT PERFORMANCE =================
 with tab3:
     st.markdown('<div class="section-title">👨‍🏭 Shift Performance</div>', unsafe_allow_html=True)
     shift_perf = filtered_prod.groupby("Shift")["Weight_tons"].sum()
-    fig, ax = plt.subplots(figsize=(5,3))
+    fig, ax = plt.subplots(figsize=(7,3))
     ax.bar(shift_perf.index, shift_perf.values, color="#ff7f0e")
     ax.set_ylabel("Production (tons)")
-    st.pyplot(fig)
+    plt.tight_layout()
+    st.pyplot(fig, clear_figure=True)
 
 # ================= SPC GAUGE =================
 with tab4:
@@ -168,14 +165,14 @@ with tab4:
     ucl = mean + 3*std
     lcl = mean - 3*std
 
-    fig, ax = plt.subplots(figsize=(5,2.5))
+    fig, ax = plt.subplots(figsize=(7,3))
     ax.plot(thickness.values, marker='o')
     ax.axhline(mean, color="green", label="Mean")
     ax.axhline(ucl, color="red", linestyle="--", label="UCL")
     ax.axhline(lcl, color="red", linestyle="--", label="LCL")
     ax.legend(fontsize=8)
     plt.tight_layout()
-    st.pyplot(fig)
+    st.pyplot(fig, clear_figure=True)
 
 # ================= AI ANOMALY DETECTION =================
 with tab5:
@@ -186,21 +183,12 @@ with tab5:
     anomalies = filtered_prod[filtered_prod["anomaly"]==-1]
     normal = filtered_prod[filtered_prod["anomaly"]==1]
 
-    fig, ax = plt.subplots(figsize=(5,3))
+    fig, ax = plt.subplots(figsize=(7,3))
     ax.scatter(normal.index, normal["Thickness"], label="Normal")
     ax.scatter(anomalies.index, anomalies["Thickness"], color="red", label="Anomaly")
     ax.legend(fontsize=8)
     plt.tight_layout()
-    st.pyplot(fig)
+    st.pyplot(fig, clear_figure=True)
 
     st.write("Detected anomalies:")
     st.dataframe(anomalies)
-
-
-
-
-
-
-
-
-
