@@ -10,8 +10,8 @@ st.set_page_config(layout="wide", page_title="Cold Mill Dashboard")
 st.markdown("""
 <style>
 .main-title{
-font-size:32px;
-font-weight:700;
+font-size:12px;
+font-weight:200;
 color:#1f4e79;
 }
 
@@ -35,7 +35,7 @@ def login():
         pwd = st.text_input("Password", type="password")
         submit = st.form_submit_button("Login")
         if submit:
-            if user == "admin" and pwd == "steel123":
+            if user == "admin" and pwd == "master":
                 st.session_state.logged_in = True
                 st.rerun()
             else:
@@ -47,7 +47,7 @@ if not st.session_state.logged_in:
 
 # ---------------- SAMPLE DATA ----------------
 np.random.seed(42)
-n = 50
+n = 10
 production = pd.DataFrame({
     "Coil_ID": [f"C{1000+i}" for i in range(n)],
     "Thickness": np.round(np.random.normal(1.2,0.05,n),3),
@@ -124,7 +124,7 @@ with tab1:
             with st.expander(f"🔎 Coil Drilldown: {row['Coil_ID']}", expanded=True):
                 coil_df = production[production["Coil_ID"]==row["Coil_ID"]]
                 st.dataframe(coil_df)
-                fig, ax = plt.subplots(figsize=(2,2.5))
+                fig, ax = plt.subplots(figsize=(5,2.5))
                 test = np.random.normal(coil_df["Thickness"].values[0], 0.02, 30)
                 ax.plot(test)
                 ax.axhline(coil_df["Target"].values[0], color="green", linestyle="--")
@@ -192,4 +192,5 @@ with tab5:
 
     st.write("Detected anomalies:")
     st.dataframe(anomalies)
+
 
