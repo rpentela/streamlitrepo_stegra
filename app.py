@@ -127,7 +127,7 @@ with tab1:
                 test = np.random.normal(coil_df["Thickness"].values[0], 0.02, 30)
                 ax.plot(test)
                 ax.axhline(coil_df["Target"].values[0], color="green", linestyle="--")
-                ax.set_title("Thickness Test Data",font_size=8)
+                ax.set_title("Thickness Test Data")
                 ax.set_xlabel("Length", fontsize=8)
                 ax.set_ylabel("Thickness (mm)", fontsize=8)
                 ax.tick_params(axis='both', which='major', labelsize=8)
@@ -195,5 +195,6 @@ with tab5:
 
     st.write("Detected anomalies:")
     st.dataframe(anomalies)
+
 
 
