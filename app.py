@@ -16,8 +16,8 @@ color:#1f4e79;
 }
 
 .section-title{
-font-size:22px;
-font-weight:600;
+font-size:12px;
+font-weight:200;
 color:#2c7be5;
 margin-top:10px;
 }
@@ -192,6 +192,7 @@ with tab5:
 
     st.write("Detected anomalies:")
     st.dataframe(anomalies)
+
 
 
 
