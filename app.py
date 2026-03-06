@@ -8,6 +8,10 @@ import seaborn as sns
 
 
 
+
+
+import streamlit as st
+
 # -----------------------------
 # User credentials
 # -----------------------------
@@ -30,17 +34,21 @@ if "username" not in st.session_state:
 # -----------------------------
 if not st.session_state.logged_in:
     st.title("🔒 Cold Mill Dashboard Login")
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
-    login_btn = st.button("Login")
 
-    if login_btn:
-        if username in USERS and password == USERS[username]:
-            st.session_state.logged_in = True
-            st.session_state.username = username
-            st.experimental_rerun()
-        else:
-            st.error("❌ Invalid username or password")
+    # Using a form allows Enter key submission
+    with st.form(key="login_form"):
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
+        submit_btn = st.form_submit_button("Login")
+
+        if submit_btn:
+            if username in USERS and password == USERS[username]:
+                st.session_state.logged_in = True
+                st.session_state.username = username
+                st.experimental_rerun()
+            else:
+                st.error("❌ Invalid username or password")
+
     st.stop()  # Stop execution until login succeeds
 
 # -----------------------------
@@ -53,7 +61,6 @@ if logout_btn:
     st.session_state.username = ""
     st.experimental_rerun()
 
-st.title("🏭 Cold Mill Dashboard")
 st.markdown("Welcome! Use the sidebar filters to interact with the dashboard.")
 # -----------------------------
 # Page Config
@@ -210,6 +217,7 @@ with tab3:
         file_name='cold_mill_report.csv',
         mime='text/csv'
     )
+
 
 
 
