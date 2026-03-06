@@ -140,7 +140,7 @@ with tab1:
     downtime_by_shift = filtered_df.groupby('Shift')['Downtime_minutes'].sum()
     
     # Set smaller figure size
-    fig, ax = plt.subplots(figsize=(2,2))  # smaller than before
+    fig, ax = plt.subplots(figsize=(4,4))  # smaller than before
     ax.pie(
         downtime_by_shift,
         labels=downtime_by_shift.index,
@@ -193,6 +193,7 @@ with tab3:
         file_name='cold_mill_report.csv',
         mime='text/csv'
     )
+
 
 
 
