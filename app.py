@@ -35,7 +35,7 @@ def login():
         pwd = st.text_input("Password", type="password")
         submit = st.form_submit_button("Login")
         if submit:
-            if user == "admin" and pwd == "master":
+            if user == "admin" and pwd == "steel123":
                 st.session_state.logged_in = True
                 st.rerun()
             else:
@@ -120,8 +120,8 @@ with tab1:
 
         if c5.button("View", key=row["Coil_ID"]):
             st.session_state["coil"] = row["Coil_ID"]
-            # Modal popup
-            with st.modal(f"🔎 Coil Drilldown: {row['Coil_ID']}", key=row["Coil_ID"]+"_modal"):
+            # Use expander instead of modal
+            with st.expander(f"🔎 Coil Drilldown: {row['Coil_ID']}", expanded=True):
                 coil_df = production[production["Coil_ID"]==row["Coil_ID"]]
                 st.dataframe(coil_df)
                 fig, ax = plt.subplots(figsize=(5,2.5))
