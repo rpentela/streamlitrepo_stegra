@@ -9,25 +9,26 @@ import seaborn as sns
 
 
 
-
 import streamlit as st
 
 # -----------------------------
 # User credentials
 # -----------------------------
 USERS = {
-    "admin": "master",
+    "raghunath": "password123",
     "colleague1": "pass1",
     "colleague2": "pass2"
 }
 
 # -----------------------------
-# Session state for login
+# Session state initialization
 # -----------------------------
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "username" not in st.session_state:
     st.session_state.username = ""
+if "login_trigger" not in st.session_state:
+    st.session_state.login_trigger = False  # new flag to trigger rerun
 
 # -----------------------------
 # Login Page
@@ -35,7 +36,6 @@ if "username" not in st.session_state:
 if not st.session_state.logged_in:
     st.title("🔒 Cold Mill Dashboard Login")
 
-    # Using a form allows Enter key submission
     with st.form(key="login_form"):
         username = st.text_input("Username")
         password = st.text_input("Password", type="password")
@@ -45,11 +45,16 @@ if not st.session_state.logged_in:
             if username in USERS and password == USERS[username]:
                 st.session_state.logged_in = True
                 st.session_state.username = username
-                st.experimental_rerun()
+                st.session_state.login_trigger = True  # flag to rerun safely
             else:
                 st.error("❌ Invalid username or password")
 
-    st.stop()  # Stop execution until login succeeds
+    # Safe rerun outside form
+    if st.session_state.login_trigger:
+        st.session_state.login_trigger = False  # reset flag
+        st.experimental_rerun()
+
+    st.stop()  # stop execution until login succeeds
 
 # -----------------------------
 # Dashboard Content
@@ -60,6 +65,7 @@ if logout_btn:
     st.session_state.logged_in = False
     st.session_state.username = ""
     st.experimental_rerun()
+
 
 st.markdown("Welcome! Use the sidebar filters to interact with the dashboard.")
 # -----------------------------
@@ -217,6 +223,7 @@ with tab3:
         file_name='cold_mill_report.csv',
         mime='text/csv'
     )
+
 
 
 
