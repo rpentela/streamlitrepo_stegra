@@ -135,7 +135,7 @@ with tab1:
     # -----------------------------
     # Downtime Pie Chart
     # -----------------------------
-    t.subheader("Downtime Distribution by Shift")
+    st.subheader("Downtime Distribution by Shift")
     downtime_by_shift = filtered_df.groupby('Shift')['Downtime_minutes'].sum()
     fig, ax = plt.subplots(figsize=(2,2))
     ax.pie(
@@ -189,6 +189,7 @@ with tab3:
         file_name='cold_mill_report.csv',
         mime='text/csv'
     )
+
 
 
 
