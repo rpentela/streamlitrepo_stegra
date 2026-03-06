@@ -7,23 +7,27 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-# -----------------------------
-# Login Page
-# -----------------------------
 
-# Define users and passwords (example)
+# -----------------------------
+# User credentials
+# -----------------------------
 USERS = {
     "admin": "master",
     "colleague1": "pass1",
     "colleague2": "pass2"
 }
 
-st.set_page_config(page_title="Cold Mill Dashboard", layout="wide")
-
-# Session state to remember login
+# -----------------------------
+# Session state for login
+# -----------------------------
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
+if "username" not in st.session_state:
+    st.session_state.username = ""
 
+# -----------------------------
+# Login Page
+# -----------------------------
 if not st.session_state.logged_in:
     st.title("🔒 Cold Mill Dashboard Login")
     username = st.text_input("Username")
@@ -32,12 +36,25 @@ if not st.session_state.logged_in:
 
     if login_btn:
         if username in USERS and password == USERS[username]:
-            st.success(f"Welcome {username}!")
             st.session_state.logged_in = True
+            st.session_state.username = username
             st.experimental_rerun()
         else:
             st.error("❌ Invalid username or password")
     st.stop()  # Stop execution until login succeeds
+
+# -----------------------------
+# Dashboard Content
+# -----------------------------
+st.sidebar.write(f"👤 Logged in as: {st.session_state.username}")
+logout_btn = st.sidebar.button("Logout")
+if logout_btn:
+    st.session_state.logged_in = False
+    st.session_state.username = ""
+    st.experimental_rerun()
+
+st.title("🏭 Cold Mill Dashboard")
+st.markdown("Welcome! Use the sidebar filters to interact with the dashboard.")
 # -----------------------------
 # Page Config
 # -----------------------------
@@ -193,6 +210,7 @@ with tab3:
         file_name='cold_mill_report.csv',
         mime='text/csv'
     )
+
 
 
 
