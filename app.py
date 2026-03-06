@@ -82,7 +82,7 @@ if filtered_prod.empty:
     st.stop()
 
 # ---------------- HEADER ----------------
-st.markdown('<div class="main-title">🏭 Cold Mill Processing Dashboard</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-header">🏭 Cold Mill Processing Dashboard</div>', unsafe_allow_html=True)
 if st.sidebar.button("Logout"):
     st.session_state.logged_in=False
     st.rerun()
@@ -192,6 +192,7 @@ with tab5:
 
     st.write("Detected anomalies:")
     st.dataframe(anomalies)
+
 
 
 
