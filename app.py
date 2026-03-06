@@ -7,12 +7,37 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-PASSWORD = st.secrets.get("DASHBOARD_PASSWORD", "mypassword")  # or set in Streamlit Secrets
-user_input = st.text_input("Enter password to access dashboard", type="password")
+# -----------------------------
+# Login Page
+# -----------------------------
 
-if user_input != PASSWORD:
-    st.warning("⚠️ Incorrect password")
-    st.stop()  # stop execution if password is wrong
+# Define users and passwords (example)
+USERS = {
+    "admin": "master",
+    "colleague1": "pass1",
+    "colleague2": "pass2"
+}
+
+st.set_page_config(page_title="Cold Mill Dashboard", layout="wide")
+
+# Session state to remember login
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+
+if not st.session_state.logged_in:
+    st.title("🔒 Cold Mill Dashboard Login")
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+    login_btn = st.button("Login")
+
+    if login_btn:
+        if username in USERS and password == USERS[username]:
+            st.success(f"Welcome {username}!")
+            st.session_state.logged_in = True
+            st.experimental_rerun()
+        else:
+            st.error("❌ Invalid username or password")
+    st.stop()  # Stop execution until login succeeds
 # -----------------------------
 # Page Config
 # -----------------------------
@@ -110,11 +135,16 @@ with tab1:
     # -----------------------------
     # Downtime Pie Chart
     # -----------------------------
-    st.subheader("Downtime Distribution by Shift")
+    t.subheader("Downtime Distribution by Shift")
     downtime_by_shift = filtered_df.groupby('Shift')['Downtime_minutes'].sum()
     fig, ax = plt.subplots(figsize=(2,2))
-    ax.pie(downtime_by_shift, labels=downtime_by_shift.index, autopct="%1.1f%%", colors=sns.color_palette("Reds", len(downtime_by_shift)))
-    ax.sub_title("Downtime Distribution")
+    ax.pie(
+        downtime_by_shift,
+        labels=downtime_by_shift.index,
+        autopct="%1.1f%%",
+        colors=sns.color_palette("Reds", len(downtime_by_shift))
+    )
+    ax.set_title("Downtime Distribution", fontsize=12)  # smaller title
     st.pyplot(fig)
 
 # -----------------------------
@@ -159,6 +189,7 @@ with tab3:
         file_name='cold_mill_report.csv',
         mime='text/csv'
     )
+
 
 
 
