@@ -43,7 +43,7 @@ def login():
 
 # ---------------- SAMPLE DATA ----------------
 np.random.seed(42)
-n=50
+n=20
 production = pd.DataFrame({
     "Coil_ID":[f"C{1000+i}" for i in range(n)],
     "Thickness":np.round(np.random.normal(1.2,0.05,n),3),
@@ -176,3 +176,4 @@ with tab5:
     st.pyplot(fig)
     st.write("Detected anomalies:")
     st.dataframe(anomalies)
+
