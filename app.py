@@ -2,267 +2,232 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.ensemble import IsolationForest
 
-st.set_page_config(page_title="Cold Mill Dashboard", layout="wide")
+st.set_page_config(layout="wide")
 
-# -----------------------------
-# USERS
-# -----------------------------
-USERS = {
-    "admin": "master",
-    "engineer": "steel123"
-}
+# ---------------- LOGIN SYSTEM ---------------- #
 
-# -----------------------------
-# SESSION STATE
-# -----------------------------
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-if "username" not in st.session_state:
-    st.session_state.username = ""
+def login():
 
-# -----------------------------
-# LOGIN PAGE
-# -----------------------------
-if not st.session_state.logged_in:
-
-    st.title("🔒 Cold Mill Dashboard Login")
+    st.title("Cold Mill Production Dashboard Login")
 
     with st.form("login_form"):
-        username = st.text_input("Username")
-        password = st.text_input("Password", type="password")
+        user = st.text_input("Username")
+        pwd = st.text_input("Password", type="password")
 
-        login = st.form_submit_button("Login")
+        submit = st.form_submit_button("Login")
 
-        if login:
-            if username in USERS and USERS[username] == password:
+        if submit:
+            if user == "admin" and pwd == "steel123":
                 st.session_state.logged_in = True
-                st.session_state.username = username
                 st.rerun()
             else:
-                st.error("Invalid username or password")
+                st.error("Invalid credentials")
 
-    st.stop()
+# ---------------- SAMPLE DATA ---------------- #
 
-# -----------------------------
-# SIDEBAR
-# -----------------------------
-st.sidebar.title("User")
+@st.cache_data
+def generate_data():
 
-st.sidebar.write(f"👤 {st.session_state.username}")
+    np.random.seed(1)
 
-if st.sidebar.button("Logout"):
-    st.session_state.logged_in = False
-    st.session_state.username = ""
-    st.rerun()
+    coils = [f"C{1000+i}" for i in range(50)]
 
-# -----------------------------
-# TITLE
-# -----------------------------
-st.title("🏭 Cold Mill Processing Line Dashboard")
+    data = pd.DataFrame({
+        "Coil_ID": coils,
+        "Thickness": np.random.normal(1.2,0.05,50),
+        "Target_Thickness":1.2,
+        "Weight_tons":np.random.randint(20,30,50),
+        "Yield":np.random.uniform(90,98,50),
+        "Scrap":np.random.uniform(0.5,5,50),
+        "Shift":np.random.choice(["A","B","C"],50),
+        "Production_Time_hr":np.random.uniform(1.2,2.5,50)
+    })
 
-# -----------------------------
-# SAMPLE DATA
-# -----------------------------
-np.random.seed(1)
+    defects = pd.DataFrame({
+        "Defect":["Edge Crack","Roll Mark","Scratch","Oil Stain","Gauge Variation"],
+        "Count":[23,15,9,12,7]
+    })
 
-dates = pd.date_range("2026-01-01", periods=120)
+    downtime = pd.DataFrame({
+        "Reason":["Roll Change","Coil Break","Maintenance","Hydraulic Issue","Setup Delay"],
+        "Minutes":[120,60,180,50,70]
+    })
 
-df = pd.DataFrame({
+    thickness_samples = np.random.normal(1.2,0.04,100)
 
-    "Date": np.random.choice(dates, 300),
+    return data, defects, downtime, thickness_samples
 
-    "Shift": np.random.choice(["A","B","C"],300),
+# ---------------- DASHBOARD ---------------- #
 
-    "Coil_ID": np.random.randint(1000,1100,300),
+def dashboard():
 
-    "Width_mm": np.random.randint(900,1600,300),
+    st.title("Cold Rolling Mill Production Dashboard")
 
-    "Thickness_mm": np.round(np.random.normal(1.5,0.05,300),3),
+    data, defects, downtime, thickness_samples = generate_data()
 
-    "Target_Thickness_mm":1.5,
+    if "selected_coil" not in st.session_state:
+        st.session_state.selected_coil = None
 
-    "Production_tons":np.random.randint(15,30,300),
+    # Logout
+    if st.sidebar.button("Logout"):
+        st.session_state.logged_in = False
+        st.rerun()
 
-    "Downtime_minutes":np.random.randint(0,60,300),
+    tabs = st.tabs([
+        "KPIs",
+        "Production",
+        "Quality",
+        "Downtime",
+        "Gauge SPC",
+        "AI Monitoring"
+    ])
 
-    "Delay_Agency":np.random.choice(
-        ["Mechanical","Electrical","Operator","Material","Quality"],300
-    ),
+# ---------------- KPI TAB ---------------- #
 
-    "Delay_Reason":np.random.choice(
-        ["Roll change","Strip break","Sensor fault","Coil jam","Setup delay"],300
-    ),
+    with tabs[0]:
 
-    "Setup_Time_min":np.random.randint(10,45,300),
+        st.subheader("Key Performance Indicators")
 
-    "Operator":np.random.choice(
-        ["John","Mike","Ravi","Chen","Luis"],300
-    )
+        avg_yield = data["Yield"].mean()
+        scrap = data["Scrap"].mean()
 
-})
+        utilization = (data["Production_Time_hr"].sum() / (24*3)) * 100
 
-# -----------------------------
-# TABS
-# -----------------------------
-tab1, tab2, tab3, tab4 = st.tabs(
-    ["📊 KPI Overview","⚙️ Downtime Analysis","🔍 Coil Drilldown","📋 Data"]
-)
+        col1,col2,col3 = st.columns(3)
 
-# -----------------------------
-# KPI TAB
-# -----------------------------
-with tab1:
+        col1.metric("Average Yield %",f"{avg_yield:.2f}")
+        col2.metric("Average Scrap %",f"{scrap:.2f}")
+        col3.metric("Mill Utilization %",f"{utilization:.1f}")
 
-    st.subheader("Production KPIs")
+        st.subheader("Shift Performance")
 
-    col1,col2,col3,col4 = st.columns(4)
+        shift_perf = data.groupby("Shift")["Weight_tons"].sum()
 
-    col1.metric(
-        "Total Production (tons)",
-        int(df["Production_tons"].sum())
-    )
+        st.bar_chart(shift_perf)
 
-    col2.metric(
-        "Average Setup Time",
-        f"{df['Setup_Time_min'].mean():.1f} min"
-    )
+# ---------------- PRODUCTION TAB ---------------- #
 
-    col3.metric(
-        "Total Downtime",
-        f"{df['Downtime_minutes'].sum()} min"
-    )
+    with tabs[1]:
 
-    thickness_dev = abs(df["Thickness_mm"]-df["Target_Thickness_mm"]).mean()
+        st.subheader("Production Data")
 
-    col4.metric(
-        "Thickness Deviation",
-        f"{thickness_dev:.3f} mm"
-    )
+        for i,row in data.iterrows():
 
-    st.subheader("Production Trend")
+            col1,col2,col3,col4,col5 = st.columns([2,2,2,2,1])
 
-    prod_trend = df.groupby("Date")["Production_tons"].sum()
+            col1.write(row["Coil_ID"])
+            col2.write(round(row["Thickness"],3))
+            col3.write(row["Weight_tons"])
+            col4.write(row["Shift"])
 
-    st.line_chart(prod_trend)
+            if col5.button("View",key=row["Coil_ID"]):
+                st.session_state.selected_coil = row["Coil_ID"]
+                st.rerun()
 
-# -----------------------------
-# DOWNTIME TAB
-# -----------------------------
-with tab2:
+        if st.session_state.selected_coil:
 
-    col1,col2 = st.columns(2)
+            st.subheader(f"Coil Drilldown : {st.session_state.selected_coil}")
 
-    with col1:
+            coil = data[data["Coil_ID"]==st.session_state.selected_coil]
 
-        st.subheader("Downtime by Agency")
+            st.write(coil)
 
-        agency_data = df.groupby("Delay_Agency")["Downtime_minutes"].sum()
+            fig,ax = plt.subplots()
 
-        fig,ax = plt.subplots(figsize=(4,4))
+            samples = np.random.normal(coil["Thickness"].values[0],0.02,30)
 
-        ax.pie(
-            agency_data,
-            labels=agency_data.index,
-            autopct="%1.1f%%",
-            startangle=90
-        )
+            ax.plot(samples)
 
-        ax.set_title("Downtime Distribution")
+            ax.axhline(coil["Target_Thickness"].values[0],color="red")
 
-        st.pyplot(fig)
+            ax.set_title("Thickness Measurement")
 
-    with col2:
+            st.pyplot(fig)
 
-        st.subheader("Downtime Pareto (Reason)")
+# ---------------- QUALITY TAB ---------------- #
 
-        reason_data = (
-            df.groupby("Delay_Reason")["Downtime_minutes"]
-            .sum()
-            .sort_values(ascending=False)
-        )
+    with tabs[2]:
 
-        fig,ax = plt.subplots(figsize=(6,4))
+        st.subheader("Quality Defects")
 
-        reason_data.plot(kind="bar",ax=ax)
+        fig,ax = plt.subplots()
 
-        ax.set_ylabel("Downtime Minutes")
+        ax.bar(defects["Defect"],defects["Count"])
+
+        ax.set_title("Defect Distribution")
 
         st.pyplot(fig)
 
-# -----------------------------
-# COIL DRILLDOWN
-# -----------------------------
-with tab3:
+# ---------------- DOWNTIME TAB ---------------- #
 
-    st.subheader("Coil Drilldown Report")
+    with tabs[3]:
 
-    coil_list = sorted(df["Coil_ID"].unique())
+        st.subheader("Downtime Pareto")
 
-    selected_coil = st.selectbox(
-        "Select Coil",
-        coil_list
-    )
+        downtime_sorted = downtime.sort_values(by="Minutes",ascending=False)
 
-    coil_data = df[df["Coil_ID"]==selected_coil]
+        fig,ax = plt.subplots()
 
-    st.write("### Coil Setup Details")
+        ax.bar(downtime_sorted["Reason"],downtime_sorted["Minutes"])
 
-    st.dataframe(
-        coil_data[
-            [
-                "Date",
-                "Shift",
-                "Operator",
-                "Width_mm",
-                "Thickness_mm",
-                "Target_Thickness_mm",
-                "Setup_Time_min"
-            ]
-        ]
-    )
+        ax.set_title("Downtime Pareto")
 
-    st.subheader("Thickness Test Graph")
+        st.pyplot(fig)
 
-    fig,ax = plt.subplots(figsize=(7,4))
+# ---------------- SPC TAB ---------------- #
 
-    ax.plot(
-        coil_data.index,
-        coil_data["Thickness_mm"],
-        marker="o",
-        label="Measured"
-    )
+    with tabs[4]:
 
-    ax.axhline(
-        coil_data["Target_Thickness_mm"].iloc[0],
-        color="red",
-        linestyle="--",
-        label="Target"
-    )
+        st.subheader("Gauge Control SPC Chart")
 
-    ax.set_xlabel("Sample")
+        mean = np.mean(thickness_samples)
+        std = np.std(thickness_samples)
 
-    ax.set_ylabel("Thickness (mm)")
+        ucl = mean + 3*std
+        lcl = mean - 3*std
 
-    ax.legend()
+        fig,ax = plt.subplots()
 
-    st.pyplot(fig)
+        ax.plot(thickness_samples)
 
-# -----------------------------
-# DATA TAB
-# -----------------------------
-with tab4:
+        ax.axhline(mean)
+        ax.axhline(ucl)
+        ax.axhline(lcl)
 
-    st.subheader("Raw Production Data")
+        ax.set_title("SPC Chart")
 
-    st.dataframe(df)
+        st.pyplot(fig)
 
-    csv = df.to_csv(index=False).encode("utf-8")
+# ---------------- AI ANOMALY ---------------- #
 
-    st.download_button(
-        "Download CSV",
-        csv,
-        "cold_mill_report.csv",
-        "text/csv"
-    )
+    with tabs[5]:
+
+        st.subheader("AI Anomaly Detection")
+
+        model = IsolationForest(contamination=0.05)
+
+        X = data[["Thickness","Weight_tons","Yield"]]
+
+        model.fit(X)
+
+        preds = model.predict(X)
+
+        data["Anomaly"] = preds
+
+        anomalies = data[data["Anomaly"]==-1]
+
+        st.write("Detected abnormal coils")
+
+        st.write(anomalies)
+
+# ---------------- MAIN ---------------- #
+
+if not st.session_state.logged_in:
+    login()
+else:
+    dashboard()
