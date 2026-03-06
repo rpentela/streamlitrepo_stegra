@@ -122,7 +122,7 @@ filtered_df = df[
 # -----------------------------
 # Tabs
 # -----------------------------
-tab1, tab2, tab3 = st.tabs(["KPIs", "Trends", "Data Table"])
+tab1, tab2, tab3 = st.tabs(["KPIs", "Trends", "Report"])
 
 # -----------------------------
 # Tab 1: Enhanced KPIs
@@ -222,6 +222,7 @@ with tab3:
         file_name='cold_mill_report.csv',
         mime='text/csv'
     )
+
 
 
 
