@@ -4,3 +4,4 @@ numpy
 anyio
 matplotlib
 seaborn
+scikit-learn
