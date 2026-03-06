@@ -128,7 +128,10 @@ with tab1:
                 test = np.random.normal(coil_df["Thickness"].values[0], 0.02, 30)
                 ax.plot(test)
                 ax.axhline(coil_df["Target"].values[0], color="green", linestyle="--")
-                ax.set_title("Thickness Test Data")
+                ax.set_title("Thickness Test Data",fontsize=12)
+                ax.set_xlabel("Coil Number", fontsize=10)
+                ax.set_ylabel("Thickness (mm)", fontsize=10)
+                ax.tick_params(axis='both', which='major', labelsize=8)  # smaller tick labels
                 st.pyplot(fig)
 
 # ================= DOWNTIME TAB =================
@@ -192,6 +195,7 @@ with tab5:
 
     st.write("Detected anomalies:")
     st.dataframe(anomalies)
+
 
 
 
