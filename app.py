@@ -23,6 +23,15 @@ margin-top:10px;
 </style>
 """, unsafe_allow_html=True)
 
+
+st.markdown("""
+    <style>
+    #MainMenu {visibility: hidden;}   /* hides top-right menu */
+    footer {visibility: hidden;}     /* hides "Made with Streamlit" footer */
+    header {visibility: hidden;}     /* hides Streamlit header */
+    </style>
+    """, unsafe_allow_html=True)
+
 # ---------------- LOGIN ----------------
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
@@ -195,6 +204,7 @@ with tab5:
 
     st.write("Detected anomalies:")
     st.dataframe(anomalies)
+
 
 
 
