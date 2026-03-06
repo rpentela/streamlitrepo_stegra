@@ -129,7 +129,7 @@ with tab1:
                 ax.plot(test)
                 ax.axhline(coil_df["Target"].values[0], color="green", linestyle="--")
                 ax.set_title("Thickness Test Data",fontsize=8)
-                ax.set_xlabel("Coil Number", fontsize=8)
+                ax.set_xlabel("Length", fontsize=8)
                 ax.set_ylabel("Thickness (mm)", fontsize=8)
                 ax.tick_params(axis='both', which='major', labelsize=3)  # smaller tick labels
                 st.pyplot(fig)
@@ -195,6 +195,7 @@ with tab5:
 
     st.write("Detected anomalies:")
     st.dataframe(anomalies)
+
 
 
 
