@@ -8,11 +8,8 @@ import seaborn as sns
 
 
 
-
-import streamlit as st
-
 # -----------------------------
-# User credentials
+# Users
 # -----------------------------
 USERS = {
     "admin": "master",
@@ -27,47 +24,52 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "username" not in st.session_state:
     st.session_state.username = ""
-if "login_trigger" not in st.session_state:
-    st.session_state.login_trigger = False  # new flag to trigger rerun
 
 # -----------------------------
 # Login Page
 # -----------------------------
-if not st.session_state.logged_in:
+def login_page():
     st.title("🔒 Cold Mill Dashboard Login")
-
+    
+    # Using a form so Enter key works
     with st.form(key="login_form"):
-        username = st.text_input("Username")
-        password = st.text_input("Password", type="password")
+        username_input = st.text_input("Username")
+        password_input = st.text_input("Password", type="password")
         submit_btn = st.form_submit_button("Login")
-
+        
         if submit_btn:
-            if username in USERS and password == USERS[username]:
+            if username_input in USERS and USERS[username_input] == password_input:
                 st.session_state.logged_in = True
-                st.session_state.username = username
-                st.session_state.login_trigger = True  # flag to rerun safely
+                st.session_state.username = username_input
             else:
                 st.error("❌ Invalid username or password")
 
-    # Safe rerun outside form
-    if st.session_state.login_trigger:
-        st.session_state.login_trigger = False  # reset flag
-        st.experimental_rerun()
+# -----------------------------
+# Main Dashboard
+# -----------------------------
+def dashboard():
+    st.sidebar.write(f"👤 Logged in as: {st.session_state.username}")
+    
+    # Logout button
+    if st.sidebar.button("Logout"):
+        st.session_state.logged_in = False
+        st.session_state.username = ""
+        st.experimental_rerun()  # safe here outside form
 
-    st.stop()  # stop execution until login succeeds
+   
+    st.markdown("Welcome! Use the sidebar filters to interact with the dashboard.")
+    # Add all your KPIs, trends, data table here
 
 # -----------------------------
-# Dashboard Content
+# App Flow
 # -----------------------------
-st.sidebar.write(f"👤 Logged in as: {st.session_state.username}")
-logout_btn = st.sidebar.button("Logout")
-if logout_btn:
-    st.session_state.logged_in = False
-    st.session_state.username = ""
-    st.experimental_rerun()
+if not st.session_state.logged_in:
+    login_page()
+else:
+    dashboard()
 
 
-st.markdown("Welcome! Use the sidebar filters to interact with the dashboard.")
+
 # -----------------------------
 # Page Config
 # -----------------------------
@@ -223,6 +225,7 @@ with tab3:
         file_name='cold_mill_report.csv',
         mime='text/csv'
     )
+
 
 
 
