@@ -62,9 +62,6 @@ if logout:
     st.session_state.username = ""
     st.rerun()
 
-st.title("🏭 Cold Mill Processing Line Dashboard")
-
-st.write("Dashboard content goes here...")
 
 # ---- Your KPIs, Trends, and Table tabs go below ----
 
@@ -225,6 +222,7 @@ with tab3:
         file_name='cold_mill_report.csv',
         mime='text/csv'
     )
+
 
 
 
