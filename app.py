@@ -63,29 +63,51 @@ filtered_df = df[
 tab1, tab2, tab3 = st.tabs(["KPIs", "Trends", "Data Table"])
 
 # -----------------------------
-# Tab 1: KPIs
+# Tab 1: Enhanced KPIs
 # -----------------------------
 with tab1:
     st.subheader("🔑 Key Performance Indicators")
+
+    # Basic KPIs
     total_prod = filtered_df['Production_tons'].sum()
     total_scrap = filtered_df['Scrap_tons'].sum()
     avg_eff = filtered_df['Efficiency_%'].mean()
-    total_downtime = filtered_df['Downtime_minutes'].sum() / 60  # hours
+    total_downtime = filtered_df['Downtime_minutes'].sum()/60  # hours
+    avg_downtime_shift = filtered_df.groupby('Shift')['Downtime_minutes'].mean()/60  # hours
+    max_prod_day = filtered_df.groupby('Date')['Production_tons'].sum().idxmax()
+    min_eff_day = filtered_df.groupby('Date')['Efficiency_%'].mean().idxmin()
 
+    # KPI Columns
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Total Production (tons)", f"{total_prod:,.0f}")
     col2.metric("Total Scrap (tons)", f"{total_scrap:.1f}")
 
-    # Emoji indicator for efficiency
+    # Efficiency emoji
     if avg_eff < 80:
         eff_indicator = "🔴"
     elif avg_eff < 90:
         eff_indicator = "🟡"
     else:
         eff_indicator = "🟢"
-
     col3.metric("Average Efficiency (%)", f"{avg_eff:.1f} {eff_indicator}")
+
     col4.metric("Total Downtime (hrs)", f"{total_downtime:.1f}")
+
+    # Additional info in next row
+    col5, col6, col7 = st.columns(3)
+    col5.metric("Average Downtime per Shift (hrs)", f"{avg_downtime_shift.mean():.1f}")
+    col6.metric("Max Production Day", f"{max_prod_day.date()}")
+    col7.metric("Min Efficiency Day", f"{min_eff_day.date()}")
+
+    # -----------------------------
+    # Downtime Pie Chart
+    # -----------------------------
+    st.subheader("Downtime Distribution by Shift")
+    downtime_by_shift = filtered_df.groupby('Shift')['Downtime_minutes'].sum()
+    fig, ax = plt.subplots(figsize=(5,5))
+    ax.pie(downtime_by_shift, labels=downtime_by_shift.index, autopct="%1.1f%%", colors=sns.color_palette("Reds", len(downtime_by_shift)))
+    ax.set_title("Downtime Distribution")
+    st.pyplot(fig)
 
 # -----------------------------
 # Tab 2: Trends
@@ -112,20 +134,13 @@ with tab2:
     ax1.set_title("Efficiency by Shift")
     st.pyplot(fig1)
 
-    # Downtime Heatmap
-    st.subheader("Downtime Distribution")
-    downtime_pivot = filtered_df.pivot_table(
-        index='Date', columns='Shift', values='Downtime_minutes'
-    )
-    fig2, ax2 = plt.subplots(figsize=(10,3))
-    sns.heatmap(downtime_pivot, annot=True, fmt=".0f", cmap="Reds", cbar_kws={'label':'Minutes'}, ax=ax2)
-    st.pyplot(fig2)
+    
 
 # -----------------------------
 # Tab 3: Data Table
 # -----------------------------
 with tab3:
-    st.subheader("📋 Filtered Data Table")
+    st.subheader("📋 Filtered Report")
     st.dataframe(filtered_df)
 
     # Download CSV
@@ -136,3 +151,4 @@ with tab3:
         file_name='cold_mill_report.csv',
         mime='text/csv'
     )
+
